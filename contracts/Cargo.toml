@@ -1,0 +1,19 @@
+[package]
+name = "casper-oracle-market"
+version = "0.1.0"
+edition = "2021"
+description = "Optimistic oracle + prediction market contracts for Casper, built with Odra."
+license = "MIT"
+
+[lib]
+name = "casper_oracle_market"
+path = "src/lib.rs"
+
+[dependencies]
+odra = { version = "2.8.2", default-features = false }
+
+[dev-dependencies]
+odra-test = "2.8.2"
+
+[lints.rust]
+missing_docs = "warn"
