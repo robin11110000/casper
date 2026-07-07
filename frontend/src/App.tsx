@@ -63,22 +63,40 @@ export function App() {
   const sparkCanvasRef = useRef<HTMLCanvasElement>(null);
   const [heroActive, setHeroActive] = useState(false);
 
-  // CSPR.click loads its SDK from an external script asynchronously and only sets
-  // window.csprclick once that finishes -- useClickRef() can be undefined until then,
-  // so gate the connect button on it rather than letting an early click crash.
+  // CSPR.click loads its SDK from an external script (cdn.cspr.click) asynchronously.
+  // window.csprclick exists as soon as that script runs, but it only actually finishes
+  // initializing (fetching app config for our appId/origin) and fires the
+  // "csprclick:loaded" window event some time after that -- useClickRef() can be
+  // undefined until then, so gate the connect button on the real "loaded" signal
+  // rather than just the global existing, and time out with a diagnostic message if
+  // it never fires (most likely cause: an invalid/unregistered VITE_CSPRCLICK_APP_ID).
   const [sdkReady, setSdkReady] = useState(false);
+  const [sdkLoadError, setSdkLoadError] = useState<string | null>(null);
+
   useEffect(() => {
-    if (window.csprclick) {
+    let settled = false;
+    function markReady() {
+      settled = true;
       setSdkReady(true);
-      return;
     }
-    const interval = setInterval(() => {
-      if (window.csprclick) {
-        setSdkReady(true);
-        clearInterval(interval);
+    if (window.csprclick) markReady();
+    window.addEventListener("csprclick:loaded", markReady);
+
+    const timeout = setTimeout(() => {
+      if (!settled) {
+        setSdkLoadError(
+          "CSPR.click SDK never finished loading after 15s. Most likely cause: " +
+            "VITE_CSPRCLICK_APP_ID isn't a real app id registered for this exact domain " +
+            "at console.cspr.build (the csprclick-template default only works on " +
+            "localhost). Could also be an ad-blocker/firewall blocking cdn.cspr.click."
+        );
       }
-    }, 200);
-    return () => clearInterval(interval);
+    }, 15_000);
+
+    return () => {
+      window.removeEventListener("csprclick:loaded", markReady);
+      clearTimeout(timeout);
+    };
   }, []);
 
   useEffect(() => {
@@ -178,6 +196,7 @@ export function App() {
             </button>
           )}
         </div>
+        {sdkLoadError && <div className="error-banner">{sdkLoadError}</div>}
       </header>
 
       <div className="section">
