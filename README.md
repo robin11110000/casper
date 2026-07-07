@@ -237,6 +237,24 @@ end -- see the `TODO(unverified)` comments in that file. Treat this as a compili
 starting point for Day 2 PM / Day 3 of the build order, not as confirmed working
 wallet integration.
 
+### Deploying to Vercel
+
+`frontend/vercel.json` sets the build command/output directory and an SPA rewrite.
+To deploy from [vercel.com/new](https://vercel.com/new):
+
+1. Import this GitHub repo.
+2. Set **Root Directory** to `frontend` (this is a subdirectory of the repo, not
+   the repo root -- Vercel needs to be told that explicitly).
+3. Framework preset should auto-detect as Vite; build command `npm run build`,
+   output directory `dist` (already set in `vercel.json` as a fallback).
+4. Add the environment variables from `frontend/.env.example` under
+   **Settings → Environment Variables**. `VITE_ORACLE_PACKAGE_HASH` and
+   `VITE_MARKET_PACKAGE_HASH` already default to this session's live testnet
+   deployment in `src/config.ts`, so the site works without setting them -- the one
+   you actually need is `VITE_CSPRCLICK_APP_ID` (register at
+   [csprclick.io](https://csprclick.io)) for wallet connect to work.
+5. Deploy. Every push to the connected branch redeploys automatically.
+
 ## Agent (`agent/`)
 
 An autonomous arbitration agent: it holds one seat on `OptimisticOracleV2`'s 3-member
