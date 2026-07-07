@@ -1,7 +1,7 @@
 /**
- * Deployment-specific addresses and settings. Fill these in after `cargo odra build`
- * + a real testnet deployment -- nothing here has been exercised against a live
- * contract in this session.
+ * Deployment-specific addresses and settings. Defaults point at the live testnet
+ * deployment from this session's `deploy_livenet` run (see README for the full
+ * transaction history); override via .env for a different deployment.
  */
 export const config = {
   /** CSPR.click app id, from https://csprclick.io after registering the app. */
@@ -11,9 +11,13 @@ export const config = {
   /** RPC node URL used to read contract state and send deploys. */
   nodeRpcUrl: import.meta.env.VITE_CASPER_NODE_RPC_URL ?? "https://node.testnet.casper.network/rpc",
   /** Contract package hash of the deployed OptimisticOracleV1 (or later, V2). */
-  oracleContractPackageHash: import.meta.env.VITE_ORACLE_PACKAGE_HASH ?? "",
+  oracleContractPackageHash:
+    import.meta.env.VITE_ORACLE_PACKAGE_HASH ??
+    "hash-9381589625613ac97d30f151a0fe53ba390c1259006f04d6347b20e87e5bb84c",
   /** Contract package hash of the deployed PredictionMarket. */
-  marketContractPackageHash: import.meta.env.VITE_MARKET_PACKAGE_HASH ?? "",
+  marketContractPackageHash:
+    import.meta.env.VITE_MARKET_PACKAGE_HASH ??
+    "hash-0a897d4de8d91d4236439b560e90edb57bcf7a7e6438d4160cc28f2d5d5d9cb2",
   /** Standard payment amount (in motes) attached to entry-point calls. */
   defaultPaymentMotes: "3000000000"
 };

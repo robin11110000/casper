@@ -20,7 +20,7 @@ export const config = {
   nodeRpcUrl: process.env.CASPER_NODE_RPC_URL ?? "https://node.testnet.casper.network/rpc",
   /** Node event-stream URL (CES / SSE) used to detect disputes. */
   nodeEventStreamUrl:
-    process.env.CASPER_EVENT_STREAM_URL ?? "https://node.testnet.casper.network/events/main",
+    process.env.CASPER_EVENT_STREAM_URL ?? "https://node.testnet.casper.network/events",
 
   /** Contract package hash of the deployed OptimisticOracleV2. */
   oracleContractPackageHash: process.env.ORACLE_PACKAGE_HASH ?? "",

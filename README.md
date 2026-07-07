@@ -91,17 +91,82 @@ cargo test
 This runs entirely against Odra's in-memory `odra-test` VM -- no wasm build, no
 running node required. It's the fast inner loop for iterating on the contract logic.
 
-### Building the deployable wasm (not done in this session)
+### Building the deployable wasm
 
-Compiling to `wasm32-unknown-unknown` and generating contract schemas needs
-`odra-build`/`odra-cli` wired into `Cargo.toml` plus the wasm target installed
-(`rustup target add wasm32-unknown-unknown`) -- see the
-[Odra docs](https://odra.dev/docs/backends/casper) for the exact `build.rs` /
-`bin/build_contract.rs` harness (mirrors `examples/bin/build_contract.rs` in the
-[odra repo](https://github.com/odradev/odra)). That step, and an actual testnet
-deployment via CSPR.click + a funded faucet account, were out of scope for this
-session and haven't been exercised -- treat `contracts/` as verified at the
-`cargo test` level only.
+`build.rs` + `bin/build_contract.rs` wire `odra-build`'s `ODRA_MODULE` env var
+into a `#[cfg(odra_module = "...")]` flag, so each module compiles to its own wasm
+binary:
+
+```bash
+cd contracts
+for MOD in OptimisticOracleV1 OptimisticOracleV2 PredictionMarket; do
+  ODRA_MODULE=$MOD cargo +nightly build -Z build-std=core,alloc \
+    --target wasm32-unknown-unknown --release --bin build_contract
+  cp ../target/wasm32-unknown-unknown/release/build_contract.wasm "wasm/$MOD.wasm"
+done
+```
+
+Casper's on-chain wasm validator rejects the `bulk-memory` proposal that LLVM emits
+by default for `wasm32-unknown-unknown`. Negating individual `-C target-feature`s
+wasn't enough -- LLVM still lowered some `memcpy`/`memset` calls to bulk-memory ops
+regardless -- so `.cargo/config.toml` builds with `-C target-cpu=mvp` instead (the
+true zero-extensions baseline), plus `-Z build-std=core,alloc` to rebuild `core`
+itself with that flag, since the prebuilt sysroot rustup ships isn't compiled with
+it. `-C link-arg=--allow-undefined` is also required so the linker leaves Casper's
+host functions (`casper_revert`, `casper_get_key`, ...) as unresolved wasm imports
+instead of erroring.
+
+### Live testnet deployment
+
+Deployed and exercised end-to-end on Casper testnet via `bin/deploy_livenet.rs`
+(`odra_casper_livenet_env`, the same `Deployer`/`HostRef` API as the local tests,
+but issuing real signed transactions):
+
+```bash
+cd contracts
+ODRA_CASPER_LIVENET_SECRET_KEY_PATH=/path/to/secret_key.pem \
+ODRA_CASPER_LIVENET_NODE_ADDRESS=https://node.testnet.casper.network/rpc \
+ODRA_CASPER_LIVENET_CHAIN_NAME=casper-test \
+ODRA_CASPER_LIVENET_EVENTS_URL=https://node.testnet.casper.network/events \
+cargo +nightly run --release --bin deploy_livenet --features livenet
+```
+
+Deployed contracts (testnet):
+
+| Contract | Package hash |
+| --- | --- |
+| `OptimisticOracleV1` | `hash-9381589625613ac97d30f151a0fe53ba390c1259006f04d6347b20e87e5bb84c` |
+| `PredictionMarket` | `hash-0a897d4de8d91d4236439b560e90edb57bcf7a7e6438d4160cc28f2d5d5d9cb2` |
+
+Full core loop run as real transactions in a single session (all links resolve on
+[testnet.cspr.live](https://testnet.cspr.live)):
+
+1. `assert_claim("Casper Agentic Buildathon 2026 submission is live")` ->
+   [`de6fa0b7...`](https://testnet.cspr.live/transaction/de6fa0b799101db51b34ac87aafb5926a9321bc0544b3737005992f93d891b28)
+2. `dispute_assertion(#0)` ->
+   [`7f19ee9f...`](https://testnet.cspr.live/transaction/7f19ee9fb5c9dc5c99429dd3660062697c5ff883d9c5249d7854dcb06db39be6)
+3. `arbitrate(#0, true)` ->
+   [`285fa035...`](https://testnet.cspr.live/transaction/285fa03556ba889bb69486e38c2467ca9af9b42ff4d00d4efe72b432cdbc43d9)
+4. `create_market(#0)` -> market #0 ->
+   [`383c2819...`](https://testnet.cspr.live/transaction/383c28195ef644d622b8caaac4631d8ac8cd7f3354c0ff328a3a755c9401f100)
+5. `buy_position(#0, YES, 3 CSPR)` ->
+   [`7409da52...`](https://testnet.cspr.live/transaction/7409da52c28d26fb55b6b90b7ecd136e672f4c10a046496b7a48833fc246e681)
+6. `buy_position(#0, NO, 1 CSPR)` ->
+   [`5150cb82...`](https://testnet.cspr.live/transaction/5150cb825ec5501b41b0ffecc8f4ae06e594d19e57cb4da04c73d820d4bcefda)
+7. `resolve_market(#0)` ->
+   [`0def0343...`](https://testnet.cspr.live/transaction/0def0343af185a1044e3b8d448e39aba8e85ec47a27edd73ab40eb67d8de00ee)
+8. `claim_payout(#0)` ->
+   [`b6342503...`](https://testnet.cspr.live/transaction/b6342503461daa98ab08165cadbc5e42e666da0beccb97a2d104fcfa380cf859)
+9. `redeem_bond(#0)` ->
+   [`ab41d386...`](https://testnet.cspr.live/transaction/ab41d386ae4441391c9ef31cf695aa97fb230d02fa26f0afe72d8f1f7bfcebad)
+
+One caveat found only by deploying live: `assert_claim`/`dispute_assertion`/
+`resolve_assertion` originally compared `env().get_block_time()` (milliseconds)
+directly against a `challenge_period_seconds` value, making the real challenge
+window ~1000x shorter than configured. The local `odra-test` mock env's
+`advance_block_time` is also milliseconds, so the bug was self-consistent in tests
+and only surfaced against a real node's wall-clock time -- fixed by switching to
+`get_block_time_secs()`.
 
 ### Frontend
 
