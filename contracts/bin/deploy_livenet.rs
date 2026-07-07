@@ -12,8 +12,9 @@ use odra::casper_types::U512;
 use odra::host::{Deployer, HostRef, InstallConfig};
 use odra::prelude::Addressable;
 
-/// 2 minutes -- demo-friendly; a real deployment would use hours/days.
-const CHALLENGE_PERIOD_SECONDS: u64 = 120;
+/// 1 hour -- generous margin over live testnet block/finality times between the
+/// assert and dispute calls in this demo script; a real deployment would use days.
+const CHALLENGE_PERIOD_SECONDS: u64 = 3600;
 
 fn main() {
     let env = odra_casper_livenet_env::env();
