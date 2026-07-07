@@ -30,8 +30,19 @@ export interface WalletSession {
 const rpcClient = new RpcClient(new HttpHandler(config.nodeRpcUrl));
 
 /** Opens the CSPR.click sign-in flow and resolves once a wallet is connected. */
-export function connectWallet(clickRef: ICSPRClickSDK): Promise<WalletSession> {
+export function connectWallet(clickRef: ICSPRClickSDK | undefined): Promise<WalletSession> {
   return new Promise((resolve, reject) => {
+    if (!clickRef) {
+      reject(
+        new Error(
+          "CSPR.click SDK hasn't finished loading yet -- it loads an external script " +
+            "asynchronously (window.csprclick), so clicking Connect immediately on page " +
+            "load can race it. Wait a moment and try again."
+        )
+      );
+      return;
+    }
+
     const timeout = setTimeout(() => {
       reject(
         new Error(

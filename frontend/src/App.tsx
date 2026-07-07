@@ -63,6 +63,24 @@ export function App() {
   const sparkCanvasRef = useRef<HTMLCanvasElement>(null);
   const [heroActive, setHeroActive] = useState(false);
 
+  // CSPR.click loads its SDK from an external script asynchronously and only sets
+  // window.csprclick once that finishes -- useClickRef() can be undefined until then,
+  // so gate the connect button on it rather than letting an early click crash.
+  const [sdkReady, setSdkReady] = useState(false);
+  useEffect(() => {
+    if (window.csprclick) {
+      setSdkReady(true);
+      return;
+    }
+    const interval = setInterval(() => {
+      if (window.csprclick) {
+        setSdkReady(true);
+        clearInterval(interval);
+      }
+    }, 200);
+    return () => clearInterval(interval);
+  }, []);
+
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const canvas = heroCanvasRef.current;
@@ -155,8 +173,8 @@ export function App() {
               </code>
             </span>
           ) : (
-            <button className="primary" onClick={handleConnect}>
-              Connect wallet (CSPR.click)
+            <button className="primary" onClick={handleConnect} disabled={!sdkReady}>
+              {sdkReady ? "Connect wallet (CSPR.click)" : "Loading wallet SDK…"}
             </button>
           )}
         </div>

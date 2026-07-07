@@ -255,6 +255,22 @@ button:active {
   transform: translateY(1px);
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+button:disabled:hover {
+  background: var(--bg-raised);
+  color: var(--ink);
+}
+
+button.primary:disabled:hover {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
 button.primary {
   background: var(--ink);
   color: var(--bg);
