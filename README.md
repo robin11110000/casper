@@ -168,6 +168,40 @@ window ~1000x shorter than configured. The local `odra-test` mock env's
 and only surfaced against a real node's wall-clock time -- fixed by switching to
 `get_block_time_secs()`.
 
+### Live in-place upgrade (the headline differentiator)
+
+`bin/deploy_livenet_upgrade.rs` then upgraded the deployed `OptimisticOracleV1`
+package to `OptimisticOracleV2` **in place**, at the exact same contract address,
+via `OptimisticOracleV2::try_upgrade` -- no proxy, no migration script:
+
+```bash
+cd contracts
+# same env vars as above
+cargo +nightly run --release --bin deploy_livenet_upgrade --features livenet
+```
+
+1. Read pre-upgrade assertion #0 through the v1 interface: `resolved=true`,
+   `outcome=Some(true)` (settled earlier in the run above).
+2. Upgraded in place ->
+   [`9d79c101...`](https://testnet.cspr.live/transaction/9d79c101677859627a3641e1517bf511d305ec640f7a8902398625788fb039ef) --
+   same package hash before and after:
+   `hash-9381589625613ac97d30f151a0fe53ba390c1259006f04d6347b20e87e5bb84c`.
+3. Read assertion #0 again through the *v2* interface: identical claim, `resolved`
+   and `outcome` -- confirmed byte-for-byte preserved across the upgrade.
+4. `assert_claim("OptimisticOracleV2 committee voting is live")` -> assertion #1 ->
+   [`adb5e5a1...`](https://testnet.cspr.live/transaction/adb5e5a156ab32cd67be1bf5daf3f0a474e2cdfbbb58a95ceabb89b7818ce101)
+5. `dispute_assertion(#1)` ->
+   [`7e1b9853...`](https://testnet.cspr.live/transaction/7e1b985369aaf22b65d2106f35dcd6a35eaddd7213aeaf0c976edd062a80d9c0)
+6. `vote(#1, true)` -- a 1-member committee (threshold `size/2 + 1 = 1`, so a single
+   vote is majority) resolves it via the *new* voting mechanism, no admin call ->
+   [`6ce46fd4...`](https://testnet.cspr.live/transaction/6ce46fd4967f85e89dc93b829fa86d7e95fdaa7e1ffe75b198e5b6d82b711109)
+7. `redeem_bond(#1)` ->
+   [`7c58be23...`](https://testnet.cspr.live/transaction/7c58be2363ad23b238a10037effc5991ced43dbf722b314ea5fc22884cc3e508)
+
+A real Casper contract's dispute-resolution logic was swapped from
+admin-arbitrated to committee-vote-resolved, live, at an address that had already
+processed a real dispute -- with the pre-existing assertion data provably untouched.
+
 ### Frontend
 
 ```bash
@@ -178,16 +212,10 @@ npm run build       # passes
 npm run dev         # not exercised in this session -- see "Frontend" below
 ```
 
-### Suggested demo script (challenge window set to ~2 minutes for a live demo)
-
-1. `assert_claim("Team X won")` with a bond, from wallet A.
-2. `dispute_assertion(id)` with a counter-bond, from wallet B, inside the window.
-3. Admin calls `arbitrate(id, true)`.
-4. `create_market(id)`, then `buy_position` YES from wallet A and NO from wallet C.
-5. `resolve_market(id)`, then `claim_payout(id)` from the winning wallet.
-6. Upgrade: `OptimisticOracleV2::try_upgrade` at the same address, with a 3-person
-   committee. Show the market from step 4 still resolves/pays out fine, then create a
-   *new* disputed assertion and settle it by committee vote instead of admin call.
+This exact script -- assert, dispute, arbitrate, market, buy, resolve, claim,
+redeem, then the live in-place upgrade and a committee-resolved dispute -- is what
+"Live testnet deployment" and "Live in-place upgrade" above actually ran, as real
+signed transactions, not a rehearsal.
 
 ## Frontend (`frontend/`)
 
@@ -259,7 +287,9 @@ npm start           # not exercised -- needs a live deployment + real credential
   market on top -- and one of the arbitrators is an AI agent, not a human."
 - Differentiator #1 (Casper): *"the dispute-resolution mechanism can be upgraded in
   place -- no proxy, no migration -- while existing markets stay open. Here's the same
-  contract address, running a different arbitration mechanism, mid-flight."*
+  contract address, running a different arbitration mechanism, mid-flight."* Not a
+  slide -- see "Live in-place upgrade" above for the actual testnet transaction that
+  did this.
 - Differentiator #2 (agentic): *"one committee seat is a Claude agent that researches
   the disputed claim with web search and casts its own on-chain vote -- the same
   `vote()` call a human committee member makes, verifiable on-chain like any other
