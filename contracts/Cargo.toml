@@ -36,5 +36,11 @@ path = "bin/deploy_livenet.rs"
 required-features = ["livenet"]
 test = false
 
+[[bin]]
+name = "deploy_livenet_upgrade"
+path = "bin/deploy_livenet_upgrade.rs"
+required-features = ["livenet"]
+test = false
+
 [lints.rust]
 missing_docs = "warn"
