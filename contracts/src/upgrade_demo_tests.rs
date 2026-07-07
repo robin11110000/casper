@@ -77,7 +77,7 @@ fn resolution_logic_upgrades_without_migrating_open_markets() {
     assert!(!preserved.resolved);
 
     // Undisputed auto-resolution still works exactly as it did under v1.
-    test_env.advance_block_time(ONE_HOUR + 1);
+    test_env.advance_block_time((ONE_HOUR + 1) * 1000);
     oracle_v2.resolve_assertion(assertion_id);
     assert_eq!(oracle_v2.get_assertion(assertion_id).outcome, Some(true));
 

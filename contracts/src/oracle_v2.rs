@@ -113,7 +113,7 @@ impl OptimisticOracleV2 {
         let id = self.next_assertion_id.get_or_default();
         self.next_assertion_id.set(id + 1);
 
-        let created_at = self.env().get_block_time();
+        let created_at = self.env().get_block_time_secs();
         let challenge_window_end = created_at + self.challenge_period.get_or_default();
 
         self.assertions.set(
@@ -155,7 +155,7 @@ impl OptimisticOracleV2 {
         if assertion.disputed {
             self.env().revert(Error::AlreadyDisputed);
         }
-        if self.env().get_block_time() > assertion.challenge_window_end {
+        if self.env().get_block_time_secs() > assertion.challenge_window_end {
             self.env().revert(Error::ChallengeWindowClosed);
         }
 
@@ -188,7 +188,7 @@ impl OptimisticOracleV2 {
         if assertion.disputed {
             self.env().revert(Error::DisputedMustBeArbitrated);
         }
-        if self.env().get_block_time() <= assertion.challenge_window_end {
+        if self.env().get_block_time_secs() <= assertion.challenge_window_end {
             self.env().revert(Error::ChallengeWindowNotClosed);
         }
 

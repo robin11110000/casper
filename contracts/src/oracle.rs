@@ -148,7 +148,7 @@ impl OptimisticOracleV1 {
         let id = self.next_assertion_id.get_or_default();
         self.next_assertion_id.set(id + 1);
 
-        let created_at = self.env().get_block_time();
+        let created_at = self.env().get_block_time_secs();
         let challenge_window_end = created_at + self.challenge_period.get_or_default();
 
         self.assertions.set(
@@ -191,7 +191,7 @@ impl OptimisticOracleV1 {
         if assertion.disputed {
             self.env().revert(Error::AlreadyDisputed);
         }
-        if self.env().get_block_time() > assertion.challenge_window_end {
+        if self.env().get_block_time_secs() > assertion.challenge_window_end {
             self.env().revert(Error::ChallengeWindowClosed);
         }
 
@@ -224,7 +224,7 @@ impl OptimisticOracleV1 {
         if assertion.disputed {
             self.env().revert(Error::DisputedMustBeArbitrated);
         }
-        if self.env().get_block_time() <= assertion.challenge_window_end {
+        if self.env().get_block_time_secs() <= assertion.challenge_window_end {
             self.env().revert(Error::ChallengeWindowNotClosed);
         }
 
@@ -384,7 +384,7 @@ mod tests {
             Error::ChallengeWindowNotClosed.into()
         );
 
-        test_env.advance_block_time(ONE_HOUR + 1);
+        test_env.advance_block_time((ONE_HOUR + 1) * 1000);
         contract.resolve_assertion(id);
 
         let assertion = contract.get_assertion(id);
@@ -423,7 +423,7 @@ mod tests {
         test_env.set_caller(disputer);
         contract.with_tokens(100.into()).dispute_assertion(id);
 
-        test_env.advance_block_time(ONE_HOUR + 1);
+        test_env.advance_block_time((ONE_HOUR + 1) * 1000);
         assert_eq!(
             contract.try_resolve_assertion(id).unwrap_err(),
             Error::DisputedMustBeArbitrated.into()
@@ -438,7 +438,7 @@ mod tests {
         test_env.set_caller(asserter);
         let id = contract.with_tokens(100.into()).assert_claim("late claim".to_string());
 
-        test_env.advance_block_time(ONE_HOUR + 1);
+        test_env.advance_block_time((ONE_HOUR + 1) * 1000);
         test_env.set_caller(disputer);
         assert_eq!(
             contract.with_tokens(100.into()).try_dispute_assertion(id).unwrap_err(),

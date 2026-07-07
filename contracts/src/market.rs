@@ -350,7 +350,7 @@ mod tests {
         test_env.set_caller(bob);
         market.with_tokens(100.into()).buy_position(market_id, false);
 
-        test_env.advance_block_time(ONE_HOUR + 1);
+        test_env.advance_block_time((ONE_HOUR + 1) * 1000);
         oracle.resolve_assertion(assertion_id);
 
         market.resolve_market(market_id);
