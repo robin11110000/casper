@@ -12,8 +12,29 @@ path = "src/lib.rs"
 [dependencies]
 odra = { version = "2.8.2", default-features = false }
 
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+odra-casper-livenet-env = { version = "2.8.2", optional = true }
+
+[build-dependencies]
+odra-build = "2.8.2"
+
 [dev-dependencies]
 odra-test = "2.8.2"
+
+[features]
+default = []
+livenet = ["odra-casper-livenet-env"]
+
+[[bin]]
+name = "build_contract"
+path = "bin/build_contract.rs"
+test = false
+
+[[bin]]
+name = "deploy_livenet"
+path = "bin/deploy_livenet.rs"
+required-features = ["livenet"]
+test = false
 
 [lints.rust]
 missing_docs = "warn"
