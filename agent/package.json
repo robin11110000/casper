@@ -1,0 +1,21 @@
+{
+  "name": "casper-oracle-arbitration-agent",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Autonomous AI agent that arbitrates disputed oracle assertions as one vote on OptimisticOracleV2's committee.",
+  "scripts": {
+    "build": "tsc -b",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.110.0",
+    "casper-js-sdk": "^5.0.12",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}

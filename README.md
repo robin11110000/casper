@@ -24,6 +24,7 @@ contracts/
     market.rs                PredictionMarket: create_market / buy_position / resolve_market / claim_payout
     upgrade_demo_tests.rs    the live in-place upgrade, end to end
 frontend/                    React + TypeScript scaffold, CSPR.click wallet connect (untested -- see below)
+agent/                        Autonomous AI arbitration agent: one committee seat, powered by Claude
 ```
 
 ## Contracts
@@ -143,17 +144,64 @@ end -- see the `TODO(unverified)` comments in that file. Treat this as a compili
 starting point for Day 2 PM / Day 3 of the build order, not as confirmed working
 wallet integration.
 
+## Agent (`agent/`)
+
+An autonomous arbitration agent: it holds one seat on `OptimisticOracleV2`'s 3-member
+committee, evaluates disputed claims with Claude (`claude-opus-4-8`, adaptive
+thinking, the `web_search` tool, structured JSON output), and submits its `vote`
+transaction on-chain -- signed with its own Casper key, exactly like a human committee
+member would. This is the project's answer to the buildathon's "agentic" requirement:
+dispute resolution isn't just admin-then-committee, it's an LLM doing the research and
+casting a verifiable, on-chain vote.
+
+| File | Role |
+| --- | --- |
+| `src/arbiter.ts` | Calls Claude with the claim text; returns `{outcome, confidence, reasoning}`. |
+| `src/casperVote.ts` | Builds, signs (local `PrivateKey`, no wallet), and submits `vote(assertion_id, outcome)`. |
+| `src/assertionSource.ts` | Finds disputed-but-unvoted assertions. **Unimplemented by default** -- see below. |
+| `src/index.ts` | Poll loop: source → arbiter → vote. |
+
+`npm install` and `npm run typecheck`/`build` all pass (against `@anthropic-ai/sdk@0.110.0`
+and `casper-js-sdk@5.0.12`, current as of this build), and the `output_config`/
+`WebSearchTool20260209`/`ThinkingConfigAdaptive` shapes in `arbiter.ts` were checked
+directly against the installed SDK's type declarations, not just the docs. **What's
+not verified: an actual end-to-end run.** There's no `ANTHROPIC_API_KEY` or funded
+testnet account in this session, so `evaluateClaim` has never been called against the
+live API, and `castVote` has never signed a real transaction. More importantly,
+**`assertionSource.ts` is intentionally a stub** -- Casper has no free "view call" the
+way Solidity does, so discovering "which assertions are disputed" needs either direct
+`state_get_dictionary_item` RPC queries (requires reverse-engineering Odra's internal
+`Mapping<u64, Assertion>` dictionary-key encoding, not done here) or an indexer like
+CSPR.cloud's REST/Streaming API (the documented tool for exactly this in Casper's AI
+Toolkit, but no API key available in this session to verify the request shape
+against). `UnimplementedAssertionSource` throws on purpose so the agent fails loudly
+rather than silently polling nothing; `StaticAssertionSource` is provided for local
+testing with manually-supplied claim ids.
+
+```bash
+cd agent
+npm install
+npm run typecheck   # passes
+npm run build       # passes
+npm start           # not exercised -- needs a live deployment + real credentials
+```
+
 ## Pitch (community vote via CSPR.fans)
 
-- Lead with the demo: assert → dispute → arbitrate → market → buy → resolve → claim,
-  in under 60 seconds, before any architecture talk.
+- Lead with the demo: assert → dispute → arbitrate/vote → market → buy → resolve →
+  claim, in under 60 seconds, before any architecture talk.
 - One-sentence framing: "An optimistic oracle like UMA's, with a Polymarket-style
-  market on top."
-- The differentiator: *"the dispute-resolution mechanism can be upgraded in place --
-  no proxy, no migration -- while existing markets stay open. Here's the same
+  market on top -- and one of the arbitrators is an AI agent, not a human."
+- Differentiator #1 (Casper): *"the dispute-resolution mechanism can be upgraded in
+  place -- no proxy, no migration -- while existing markets stay open. Here's the same
   contract address, running a different arbitration mechanism, mid-flight."*
-- Say explicitly: arbitration (admin in v1, 3-person committee in v2) is a
-  placeholder for a real decentralized voting/staking module in production.
+- Differentiator #2 (agentic): *"one committee seat is a Claude agent that researches
+  the disputed claim with web search and casts its own on-chain vote -- the same
+  `vote()` call a human committee member makes, verifiable on-chain like any other
+  transaction."*
+- Say explicitly: arbitration (admin in v1, 3-person human+AI committee in v2) is a
+  placeholder for a larger decentralized voting/staking module in production, and the
+  AI agent is one arbitrator among several, not a single point of trust.
 
 ## Open questions this build resolved
 
