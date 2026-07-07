@@ -72,6 +72,30 @@ h1.title {
   margin: 0 0 1rem;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.ascii-hero-canvas {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.scroll-spark-canvas {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+}
+
 .dek {
   font-size: 0.98rem;
   color: var(--ink-soft);

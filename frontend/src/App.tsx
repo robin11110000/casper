@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useClickRef } from "@make-software/csprclick-ui";
 import { connectWallet } from "./services/casperClient";
 import {
@@ -12,6 +12,11 @@ import {
   resolveAssertion,
   resolveMarket
 } from "./services/oracleMarket";
+import { mountAsciiHero } from "./effects/asciiHero";
+import { mountScrollSpark } from "./effects/scrollSpark";
+import { scrambleOnIntersect } from "./effects/scramble";
+
+const HERO_TEXT = "Optimistic Oracle";
 
 /**
  * Deploys submitted this session, tracked client-side only. There is no on-chain
@@ -54,6 +59,30 @@ export function App() {
   const [marketId, setMarketId] = useState("0");
   const [buyAmountCspr, setBuyAmountCspr] = useState("5");
 
+  const heroCanvasRef = useRef<HTMLCanvasElement>(null);
+  const sparkCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [heroActive, setHeroActive] = useState(false);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const canvas = heroCanvasRef.current;
+    if (!canvas) return;
+    setHeroActive(true);
+    return mountAsciiHero(canvas, HERO_TEXT);
+  }, []);
+
+  useEffect(() => {
+    const canvas = sparkCanvasRef.current;
+    if (!canvas) return;
+    return mountScrollSpark(canvas);
+  }, []);
+
+  useEffect(() => {
+    const headings = document.querySelectorAll<HTMLElement>(".section-body h2");
+    const cleanups = Array.from(headings).map((heading, i) => scrambleOnIntersect(heading, i * 80));
+    return () => cleanups.forEach((cleanup) => cleanup());
+  }, []);
+
   async function handleConnect() {
     await run("connect_wallet", async () => {
       const session = await connectWallet(clickRef);
@@ -74,13 +103,24 @@ export function App() {
   }
 
   return (
-    <main className="page">
-      <header className="masthead">
-        <div className="kicker">
-          <span className="dot" />
-          Live on Casper testnet
-        </div>
-        <h1 className="title">Optimistic Oracle + Prediction Market</h1>
+    <>
+      <canvas ref={sparkCanvasRef} className="scroll-spark-canvas" aria-hidden="true" />
+      <main className="page">
+        <header className="masthead">
+          <div className="kicker">
+            <span className="dot" />
+            Live on Casper testnet
+          </div>
+          <canvas
+            ref={heroCanvasRef}
+            className="ascii-hero-canvas"
+            aria-hidden="true"
+            style={{ display: heroActive ? "block" : "none" }}
+          />
+          <h1 className="title">
+            {heroActive ? <span className="visually-hidden">{HERO_TEXT}</span> : HERO_TEXT}
+            {" + Prediction Market"}
+          </h1>
         <p className="dek">
           Assert a claim, back it with a bond, let anyone dispute it, settle disputes by
           committee vote, then trade a market against the outcome. This UI's browser
@@ -340,7 +380,8 @@ export function App() {
             )}
           </div>
         </div>
-      </div>
-    </main>
+        </div>
+      </main>
+    </>
   );
 }
