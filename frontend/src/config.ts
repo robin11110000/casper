@@ -4,8 +4,12 @@
  * transaction history); override via .env for a different deployment.
  */
 export const config = {
-  /** CSPR.click app id, from https://csprclick.io after registering the app. */
-  csprClickAppId: import.meta.env.VITE_CSPRCLICK_APP_ID ?? "",
+  /**
+   * CSPR.click app id, registered at https://console.cspr.build. The default
+   * `csprclick-template` id only works for local development on localhost -- a
+   * real deployment (e.g. Vercel) needs its own registered app id.
+   */
+  csprClickAppId: import.meta.env.VITE_CSPRCLICK_APP_ID ?? "csprclick-template",
   /** "casper-test" for testnet, "casper" for mainnet. */
   networkName: import.meta.env.VITE_CASPER_NETWORK ?? "casper-test",
   /** RPC node URL used to read contract state and send deploys. */

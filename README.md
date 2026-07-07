@@ -250,9 +250,11 @@ To deploy from [vercel.com/new](https://vercel.com/new):
 4. Add the environment variables from `frontend/.env.example` under
    **Settings → Environment Variables**. `VITE_ORACLE_PACKAGE_HASH` and
    `VITE_MARKET_PACKAGE_HASH` already default to this session's live testnet
-   deployment in `src/config.ts`, so the site works without setting them -- the one
-   you actually need is `VITE_CSPRCLICK_APP_ID` (register at
-   [csprclick.io](https://csprclick.io)) for wallet connect to work.
+   deployment in `src/config.ts`, so the site works without setting them.
+   `VITE_CSPRCLICK_APP_ID` defaults to `csprclick-template`, which CSPR.click
+   only accepts from `localhost` -- for the live Vercel URL to actually connect
+   wallets, register your own app id at
+   [console.cspr.build](https://console.cspr.build) and set it here.
 5. Deploy. Every push to the connected branch redeploys automatically.
 
 ## Agent (`agent/`)
