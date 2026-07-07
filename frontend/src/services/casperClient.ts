@@ -32,7 +32,19 @@ const rpcClient = new RpcClient(new HttpHandler(config.nodeRpcUrl));
 /** Opens the CSPR.click sign-in flow and resolves once a wallet is connected. */
 export function connectWallet(clickRef: ICSPRClickSDK): Promise<WalletSession> {
   return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject(
+        new Error(
+          "Wallet connect timed out after 30s. Do you have the Casper Wallet browser " +
+            "extension installed? (CSPR.click is configured with providers: " +
+            "['casper-wallet'] only.) Also check that VITE_CSPRCLICK_APP_ID is a real " +
+            "app id registered for this domain at console.cspr.build, not left blank."
+        )
+      );
+    }, 30_000);
+
     clickRef.once("csprclick:signed_in", (event: { account?: { public_key?: string } }) => {
+      clearTimeout(timeout);
       if (!event.account?.public_key) {
         reject(new Error("Wallet connected but no public key was returned"));
         return;

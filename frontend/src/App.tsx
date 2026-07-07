@@ -55,8 +55,11 @@ export function App() {
   const [buyAmountCspr, setBuyAmountCspr] = useState("5");
 
   async function handleConnect() {
-    const session = await connectWallet(clickRef);
-    setPublicKeyHex(session.publicKeyHex);
+    await run("connect_wallet", async () => {
+      const session = await connectWallet(clickRef);
+      setPublicKeyHex(session.publicKeyHex);
+      return session.publicKeyHex;
+    });
   }
 
   function csprToMotes(cspr: string): string {
@@ -74,8 +77,9 @@ export function App() {
     <main style={{ maxWidth: 720, margin: "2rem auto", fontFamily: "sans-serif" }}>
       <h1>Casper Optimistic Oracle + Prediction Market</h1>
       <p style={{ color: "#666" }}>
-        Scaffold UI, not yet run against a live wallet or deployed contract -- see the
-        repo README before demoing.
+        Contracts are live on Casper testnet (see README for the deployed hashes and
+        transaction history). This UI's browser wallet-connect flow is unverified --
+        connect a Casper Wallet below to try it.
       </p>
 
       <section>
