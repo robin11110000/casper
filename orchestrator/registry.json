@@ -6,7 +6,7 @@
     "description": "Summarizes a topic into a short brief with cited sources.",
     "tags": ["research", "summarization", "sources", "brief"],
     "price": 0.5,
-    "slaSeconds": 120,
+    "slaSeconds": 300,
     "deliverableType": "text"
   },
   {
@@ -16,7 +16,7 @@
     "description": "Redundant research provider, same capability, used as the fallback when the primary doesn't deliver in time.",
     "tags": ["research", "summarization", "sources", "brief"],
     "price": 0.6,
-    "slaSeconds": 120,
+    "slaSeconds": 300,
     "deliverableType": "text"
   },
   {
@@ -26,7 +26,7 @@
     "description": "Checks a claim or a piece of output and returns a confidence score plus flags.",
     "tags": ["verify", "fact-check", "confidence-score", "review"],
     "price": 0.25,
-    "slaSeconds": 60,
+    "slaSeconds": 300,
     "deliverableType": "schema"
   },
   {
@@ -36,7 +36,7 @@
     "description": "Redundant verification provider, same capability, used as the fallback when the primary doesn't deliver in time.",
     "tags": ["verify", "fact-check", "confidence-score", "review"],
     "price": 0.3,
-    "slaSeconds": 60,
+    "slaSeconds": 300,
     "deliverableType": "schema"
   },
   {
@@ -46,7 +46,7 @@
     "description": "Turns a brief into polished, formatted output such as a thread or a doc.",
     "tags": ["content", "writing", "formatting", "compose"],
     "price": 0.5,
-    "slaSeconds": 90,
+    "slaSeconds": 300,
     "deliverableType": "text"
   },
   {
@@ -56,7 +56,7 @@
     "description": "Redundant content provider, same capability, used as the fallback when the primary doesn't deliver in time.",
     "tags": ["content", "writing", "formatting", "compose"],
     "price": 0.55,
-    "slaSeconds": 90,
+    "slaSeconds": 300,
     "deliverableType": "text"
   }
 ]
