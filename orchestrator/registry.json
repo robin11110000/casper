@@ -1,0 +1,62 @@
+[
+  {
+    "serviceId": "svc-research-brief",
+    "agentId": "agent-research",
+    "name": "Research Brief",
+    "description": "Summarizes a topic into a short brief with cited sources.",
+    "tags": ["research", "summarization", "sources", "brief"],
+    "price": 0.5,
+    "slaSeconds": 120,
+    "deliverableType": "text"
+  },
+  {
+    "serviceId": "svc-research-brief-backup",
+    "agentId": "agent-research-backup",
+    "name": "Research Brief (backup provider)",
+    "description": "Redundant research provider, same capability, used as the fallback when the primary doesn't deliver in time.",
+    "tags": ["research", "summarization", "sources", "brief"],
+    "price": 0.6,
+    "slaSeconds": 120,
+    "deliverableType": "text"
+  },
+  {
+    "serviceId": "svc-verify-claim",
+    "agentId": "agent-verify",
+    "name": "Claim Verifier",
+    "description": "Checks a claim or a piece of output and returns a confidence score plus flags.",
+    "tags": ["verify", "fact-check", "confidence-score", "review"],
+    "price": 0.25,
+    "slaSeconds": 60,
+    "deliverableType": "schema"
+  },
+  {
+    "serviceId": "svc-verify-claim-backup",
+    "agentId": "agent-verify-backup",
+    "name": "Claim Verifier (backup provider)",
+    "description": "Redundant verification provider, same capability, used as the fallback when the primary doesn't deliver in time.",
+    "tags": ["verify", "fact-check", "confidence-score", "review"],
+    "price": 0.3,
+    "slaSeconds": 60,
+    "deliverableType": "schema"
+  },
+  {
+    "serviceId": "svc-content-format",
+    "agentId": "agent-content",
+    "name": "Content Formatter",
+    "description": "Turns a brief into polished, formatted output such as a thread or a doc.",
+    "tags": ["content", "writing", "formatting", "compose"],
+    "price": 0.5,
+    "slaSeconds": 90,
+    "deliverableType": "text"
+  },
+  {
+    "serviceId": "svc-content-format-backup",
+    "agentId": "agent-content-backup",
+    "name": "Content Formatter (backup provider)",
+    "description": "Redundant content provider, same capability, used as the fallback when the primary doesn't deliver in time.",
+    "tags": ["content", "writing", "formatting", "compose"],
+    "price": 0.55,
+    "slaSeconds": 90,
+    "deliverableType": "text"
+  }
+]

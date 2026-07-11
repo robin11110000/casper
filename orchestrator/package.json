@@ -1,0 +1,24 @@
+{
+  "name": "croo-multi-agent-orchestrator",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Multi-agent orchestrator for the CROO Agent Store: decomposes a natural-language goal into subtasks, hires CAP-registered specialist agents, pays them in USDC via CAPVault escrow, and returns a composed result with a full receipt trail.",
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck": "tsc -b --noEmit",
+    "demo": "npm run build && node dist/cli.js",
+    "specialist:research": "npm run build && node dist/specialists/bin/research.js",
+    "specialist:verify": "npm run build && node dist/specialists/bin/verify.js",
+    "specialist:content": "npm run build && node dist/specialists/bin/content.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.110.0",
+    "@croo-network/sdk": "^0.2.1",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}
